@@ -3,8 +3,13 @@ body {
   padding:  20px 80px;
 }
 
+a {
+  text-decoration: none;
+}
 
-
+* {
+  box-sizing:  border-box;
+}
 
 
 
