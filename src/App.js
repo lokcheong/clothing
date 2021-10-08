@@ -8,7 +8,7 @@ import './App.css';
 import HomePage from './pages/homepage/homepage.component.jsx'
 import ShopPage from './pages/shop/shop.component.jsx'
 import SignInSignUpPage from './pages/signin-signup/signin-signup.component.jsx'
-import { auth } from './firebase/firebase.utils';
+import { auth , createUserProfileDocument} from './firebase/firebase.utils';
 
 //Components
 import Header from './components/header/header.component.jsx'
@@ -22,7 +22,7 @@ class App extends React.Component {
     };
   }
 
-  unsubscribeFromAuth = null
+  unsubscribeFromAuth = null;
 
 
   componentDidMount() {
@@ -31,10 +31,32 @@ class App extends React.Component {
     //storing this into unscrubscribeFromAuth
     //will allow us to call it to then unsubscribe from the listerner
     //when the app is fully closed
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({currentUser:user});
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+      // this.setState({currentUser:userAuth});
 
-      console.log(user);
+      //check if there is a user, if not then create the user profile
+      //in firestore
+      // createUserProfileDocument(userAuth)
+      // console.log(userAuth);
+
+      if (userAuth) {
+        //if the user dosen't exists, we create a new one san store it
+        const userRef = await createUserProfileDocument(userAuth);
+
+        //we then use onSnapshot to access the real-time data
+        //that is stored in the db for the user
+        //and now change our state currentUser to it
+        userRef.onSnapshot(snapShot => {
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data()
+            }
+          }, () => {console.log(this.state);})
+        });
+      } else {
+        this.setState({ currentUser: userAuth});
+      }
     });
   }
 
